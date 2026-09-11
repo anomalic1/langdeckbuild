@@ -2,7 +2,9 @@ import React from 'react';
 import { BookOpen, Settings, Clock, Trash2, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function Sidebar({ history, onSelectDeck, onDeleteDeck, onNewDeck, onOpenSettings, currentDeckId }) {
+// ⚡ Bolt Optimization: Memoized to prevent expensive re-renders while AI stream updates App state.
+// Impact: Reduces re-renders significantly during deck generation.
+const Sidebar = React.memo(function Sidebar({ history, onSelectDeck, onDeleteDeck, onNewDeck, onOpenSettings, currentDeckId }) {
   return (
     <div className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-screen text-slate-300">
       <div className="p-6 border-b border-slate-800 flex items-center space-x-3">
@@ -65,4 +67,6 @@ export default function Sidebar({ history, onSelectDeck, onDeleteDeck, onNewDeck
       </div>
     </div>
   );
-}
+});
+
+export default Sidebar;

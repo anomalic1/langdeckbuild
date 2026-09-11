@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function SettingsModal({ isOpen, onClose, onSave }) {
+// ⚡ Bolt Optimization: Memoized to prevent expensive re-renders while AI stream updates App state.
+// Impact: Reduces re-renders significantly during deck generation.
+const SettingsModal = React.memo(function SettingsModal({ isOpen, onClose, onSave }) {
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('https://api.openai.com/v1/chat/completions');
   const [modelName, setModelName] = useState('gpt-4o-mini');
@@ -93,4 +95,6 @@ export default function SettingsModal({ isOpen, onClose, onSave }) {
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default SettingsModal;

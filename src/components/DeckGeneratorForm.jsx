@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function DeckGeneratorForm({ onGenerate, isLoading }) {
+// ⚡ Bolt Optimization: Memoized to prevent expensive re-renders while AI stream updates App state.
+// Impact: Reduces re-renders significantly during deck generation.
+const DeckGeneratorForm = React.memo(function DeckGeneratorForm({ onGenerate, isLoading }) {
   const [targetLanguage, setTargetLanguage] = useState('');
   const [nativeLanguage, setNativeLanguage] = useState('English');
   const [nicheTopic, setNicheTopic] = useState('');
@@ -93,4 +95,6 @@ export default function DeckGeneratorForm({ onGenerate, isLoading }) {
       </div>
     </form>
   );
-}
+});
+
+export default DeckGeneratorForm;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SettingsModal from './components/SettingsModal';
 import DeckGeneratorForm from './components/DeckGeneratorForm';
 import FlashcardViewer from './components/FlashcardViewer';
@@ -34,12 +34,15 @@ export default function App() {
     if (!savedKey) setIsSettingsOpen(true);
   }, []);
 
-  const handleSaveSettings = (newSettings) => {
+  // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
+  // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
+  // state updates from the AI stream reader.
+  const handleSaveSettings = useCallback((newSettings) => {
     setSettings(newSettings);
     toast.success('Settings saved successfully!');
-  };
+  }, []);
 
-  const handleGenerateDeck = async (params) => {
+  const handleGenerateDeck = useCallback(async (params) => {
     if (!settings.apiKey) {
       setIsSettingsOpen(true);
       toast.error("Please configure your API key first.");
@@ -68,21 +71,27 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [settings]);
 
-  const handleSelectDeck = (deck) => {
+  const handleSelectDeck = useCallback((deck) => {
     setCurrentDeck(deck);
     setCurrentTopic(deck.topic);
-  };
+  }, []);
 
-  const handleDeleteDeck = (id) => {
+  const handleDeleteDeck = useCallback((id) => {
     setHistory(deleteDeckFromHistory(id));
     if (currentDeck?.id === id) {
       setCurrentDeck(null);
       setCurrentTopic("");
     }
     toast('Deck deleted.', { icon: '🗑️' });
-  };
+  }, [currentDeck]);
+
+  // ⚡ Bolt Optimization: Replaced inline arrow functions in JSX with stable
+  // references to maintain React.memo effectiveness on child components.
+  const handleNewDeck = useCallback(() => setCurrentDeck(null), []);
+  const handleOpenSettings = useCallback(() => setIsSettingsOpen(true), []);
+  const handleCloseSettings = useCallback(() => setIsSettingsOpen(false), []);
 
   return (
     <div className="flex h-screen bg-slate-950 font-sans text-slate-100 overflow-hidden">
@@ -93,8 +102,8 @@ export default function App() {
         currentDeckId={currentDeck?.id}
         onSelectDeck={handleSelectDeck}
         onDeleteDeck={handleDeleteDeck}
-        onNewDeck={() => setCurrentDeck(null)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+        onNewDeck={handleNewDeck}
+        onOpenSettings={handleOpenSettings}
       />
 
       <main className="flex-1 overflow-y-auto relative p-8">
@@ -152,7 +161,7 @@ export default function App() {
 
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)}
+        onClose={handleCloseSettings}
         onSave={handleSaveSettings}
       />
     </div>
