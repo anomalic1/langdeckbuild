@@ -3,7 +3,6 @@ import Flashcard from './Flashcard';
 import { ArrowLeft, ArrowRight, Shuffle, Download, ArrowLeftCircle } from 'lucide-react';
 import { exportToAnki } from '../utils/ankiExport';
 import { useSwipeable } from 'react-swipeable';
-import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 
@@ -31,14 +30,23 @@ export default function FlashcardViewer({ deck, topic, onBack }) {
     toast('Deck Shuffled!', { icon: '🔀', style: { background: '#1e293b', color: '#fff' } });
   };
 
-  const handleExport = () => {
+  // ⚡ Bolt Optimization: Dynamically import canvas-confetti only when needed
+  // Impact: Reduces initial JS bundle size by code-splitting the ~30KB confetti library
+  const handleExport = async () => {
     exportToAnki(currentDeck, topic);
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
-    });
+
+    try {
+      const confetti = (await import('canvas-confetti')).default;
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+      });
+    } catch (err) {
+      console.warn("Could not load confetti animation");
+    }
+
     toast.success('Exported to Anki successfully!', { style: { background: '#1e293b', color: '#fff' } });
   };
 
