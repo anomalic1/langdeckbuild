@@ -55,9 +55,17 @@ export default function App() {
     
     const loadingToast = toast.loading('Generating your custom deck...');
     
+    // ⚡ Bolt Optimization: Batch AI stream text updates using requestAnimationFrame.
+    // Calling setStreamedText for every single token chunks blocks the main thread
+    // and causes UI stuttering. Batching them to max 60FPS keeps the UI responsive.
+    let rafId;
+
     try {
       const cards = await generateDeckStream(settings, params, (full, chunk) => {
-        setStreamedText(full);
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          setStreamedText(full);
+        });
       });
       
       const newHistory = saveDeckToHistory(params.nicheTopic, cards);
@@ -69,6 +77,7 @@ export default function App() {
     } catch (err) {
       toast.error(err.message || 'Failed to generate deck', { id: loadingToast });
     } finally {
+      if (rafId) cancelAnimationFrame(rafId);
       setIsLoading(false);
     }
   }, [settings]);
