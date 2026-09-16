@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SettingsModal from './components/SettingsModal';
 import DeckGeneratorForm from './components/DeckGeneratorForm';
 import FlashcardViewer from './components/FlashcardViewer';
@@ -21,7 +21,10 @@ export default function App() {
   const [currentTopic, setCurrentTopic] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
-  const [streamedText, setStreamedText] = useState("");
+  // ⚡ Bolt Optimization: Use a ref to bypass React state for high-frequency stream updates.
+  // Impact: Eliminates hundreds of App component re-renders per second during deck generation,
+  // substantially reducing CPU usage and improving main thread responsiveness.
+  const streamContainerRef = useRef(null);
 
   useEffect(() => {
     const savedKey = localStorage.getItem('langdeck_api_key') || '';
@@ -33,6 +36,12 @@ export default function App() {
     
     if (!savedKey) setIsSettingsOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (streamContainerRef.current && !isLoading && !currentDeck) {
+       streamContainerRef.current.innerHTML = '<span class="text-slate-600">Waiting for generation to start...</span>';
+    }
+  }, [currentDeck, isLoading]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -50,14 +59,18 @@ export default function App() {
     }
 
     setIsLoading(true);
-    setStreamedText("");
+    if (streamContainerRef.current) {
+      streamContainerRef.current.innerHTML = '<span class="text-slate-600">Waiting for generation to start...</span>';
+    }
     setCurrentDeck(null);
     
     const loadingToast = toast.loading('Generating your custom deck...');
     
     try {
       const cards = await generateDeckStream(settings, params, (full, chunk) => {
-        setStreamedText(full);
+        if (streamContainerRef.current) {
+          streamContainerRef.current.textContent = full;
+        }
       });
       
       const newHistory = saveDeckToHistory(params.nicheTopic, cards);
@@ -132,11 +145,10 @@ export default function App() {
                       AI Stream Terminal
                     </span>
                   </div>
-                  <div className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap">
-                    {streamedText || (
-                      <span className="text-slate-600">Waiting for generation to start...</span>
-                    )}
-                  </div>
+                  <div
+                    ref={streamContainerRef}
+                    className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap"
+                  />
                 </div>
               </div>
             </motion.div>
