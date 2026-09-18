@@ -5,3 +5,7 @@
 ## 2023-10-27 - [SSE Stream Buffer and State Update Batching]
 **Learning:** Parsing Server-Sent Events (SSE) stream chunks by simply splitting by `\n` without a buffer causes partial data at network chunk boundaries to be silently dropped, potentially corrupting JSON. Also, calling state update callbacks (`onChunk`) inside the inner parsing loop (once per valid SSE line) triggers excessive React state updates (O(N) per chunk instead of O(1)).
 **Action:** Always maintain a string buffer when manually decoding streaming text chunks, using `lines.pop()` to retain the incomplete trailing segment. Batch state-updating callbacks so they fire at most once per network chunk rather than for every parsed SSE event.
+
+## 2024-05-18 - Isolate high-frequency state updates
+**Learning:** Frequent state updates (like AI text streaming) at the root level cause expensive re-renders across the entire React component tree, even if child components are memoized.
+**Action:** Isolate high-frequency state updates into dedicated child components and use `useRef` + `useImperativeHandle` to push updates downwards without triggering a full re-render of the parent.
