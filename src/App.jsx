@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SettingsModal from './components/SettingsModal';
 import DeckGeneratorForm from './components/DeckGeneratorForm';
 import FlashcardViewer from './components/FlashcardViewer';
 import Sidebar from './components/Sidebar';
+import StreamTerminal from './components/StreamTerminal';
 import { generateDeckStream } from './utils/api';
 import { saveDeckToHistory, getDeckHistory, deleteDeckFromHistory } from './utils/storage';
 import { Toaster, toast } from 'react-hot-toast';
@@ -21,7 +22,8 @@ export default function App() {
   const [currentTopic, setCurrentTopic] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
-  const [streamedText, setStreamedText] = useState("");
+
+  const streamTerminalRef = useRef(null);
 
   useEffect(() => {
     const savedKey = localStorage.getItem('langdeck_api_key') || '';
@@ -50,14 +52,14 @@ export default function App() {
     }
 
     setIsLoading(true);
-    setStreamedText("");
+    streamTerminalRef.current?.clearText();
     setCurrentDeck(null);
     
     const loadingToast = toast.loading('Generating your custom deck...');
     
     try {
       const cards = await generateDeckStream(settings, params, (full, chunk) => {
-        setStreamedText(full);
+        streamTerminalRef.current?.updateText(full);
       });
       
       const newHistory = saveDeckToHistory(params.nicheTopic, cards);
@@ -125,19 +127,7 @@ export default function App() {
               </div>
               
               <div className="flex flex-col h-full py-8">
-                <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 flex flex-col font-mono text-sm">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-                    <span className="text-slate-400 font-semibold tracking-widest uppercase text-xs flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-3 ${isLoading ? 'bg-blue-500 animate-pulse' : 'bg-slate-700'}`}></div>
-                      AI Stream Terminal
-                    </span>
-                  </div>
-                  <div className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap">
-                    {streamedText || (
-                      <span className="text-slate-600">Waiting for generation to start...</span>
-                    )}
-                  </div>
-                </div>
+                <StreamTerminal ref={streamTerminalRef} isLoading={isLoading} />
               </div>
             </motion.div>
           ) : (
