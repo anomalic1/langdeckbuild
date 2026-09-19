@@ -9,3 +9,6 @@
 ## 2024-05-18 - Isolate high-frequency state updates
 **Learning:** Frequent state updates (like AI text streaming) at the root level cause expensive re-renders across the entire React component tree, even if child components are memoized.
 **Action:** Isolate high-frequency state updates into dedicated child components and use `useRef` + `useImperativeHandle` to push updates downwards without triggering a full re-render of the parent.
+## 2024-05-25 - Flash of Empty State (FOES)
+**Learning:** Using `useEffect` to populate initial state from `localStorage` on mount causes an unnecessary secondary render and briefly shows the empty state (FOES) before the data is loaded.
+**Action:** Use lazy state initialization (`useState(() => ...)`) when reading from `localStorage` to ensure the data is available synchronously during the initial render, preventing the FOES and saving a render cycle.

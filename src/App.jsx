@@ -10,31 +10,24 @@ import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function App() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settings, setSettings] = useState({
-    apiKey: '',
-    baseUrl: 'https://api.openai.com/v1/chat/completions',
-    modelName: 'gpt-4o-mini'
+  const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
+    return !localStorage.getItem('langdeck_api_key');
+  });
+  const [settings, setSettings] = useState(() => {
+    return {
+      apiKey: localStorage.getItem('langdeck_api_key') || '',
+      baseUrl: localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions',
+      modelName: localStorage.getItem('langdeck_model') || 'gpt-4o-mini'
+    };
   });
   
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(() => getDeckHistory());
   const [currentDeck, setCurrentDeck] = useState(null);
   const [currentTopic, setCurrentTopic] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
 
   const streamTerminalRef = useRef(null);
-
-  useEffect(() => {
-    const savedKey = localStorage.getItem('langdeck_api_key') || '';
-    const savedUrl = localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions';
-    const savedModel = localStorage.getItem('langdeck_model') || 'gpt-4o-mini';
-    setSettings({ apiKey: savedKey, baseUrl: savedUrl, modelName: savedModel });
-    
-    setHistory(getDeckHistory());
-    
-    if (!savedKey) setIsSettingsOpen(true);
-  }, []);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
