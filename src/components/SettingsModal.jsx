@@ -4,18 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // ⚡ Bolt Optimization: Memoized to prevent expensive re-renders while AI stream updates App state.
 // Impact: Reduces re-renders significantly during deck generation.
+// ⚡ Bolt Optimization: Lazy state initialization for localStorage reads
+// Impact: Prevents Flash of Empty State (FOES) and avoids unnecessary secondary render on mount
 const SettingsModal = React.memo(function SettingsModal({ isOpen, onClose, onSave }) {
-  const [apiKey, setApiKey] = useState('');
-  const [baseUrl, setBaseUrl] = useState('https://api.openai.com/v1/chat/completions');
-  const [modelName, setModelName] = useState('gpt-4o-mini');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('langdeck_api_key') || '');
+  const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions');
+  const [modelName, setModelName] = useState(() => localStorage.getItem('langdeck_model') || 'gpt-4o-mini');
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('langdeck_api_key') || '';
-    const savedUrl = localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions';
-    const savedModel = localStorage.getItem('langdeck_model') || 'gpt-4o-mini';
-    setApiKey(savedKey);
-    setBaseUrl(savedUrl);
-    setModelName(savedModel);
+    if (isOpen) {
+      const savedKey = localStorage.getItem('langdeck_api_key') || '';
+      const savedUrl = localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions';
+      const savedModel = localStorage.getItem('langdeck_model') || 'gpt-4o-mini';
+      setApiKey(savedKey);
+      setBaseUrl(savedUrl);
+      setModelName(savedModel);
+    }
   }, [isOpen]);
 
   const handleSave = () => {
