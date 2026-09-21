@@ -1,3 +1,6 @@
 ## 2024-05-17 - Lazy State Initialization for LocalStorage
 **Learning:** Components that stay mounted but hidden (like AnimatePresence modals) can't just drop their resynchronization `useEffect` when moving to lazy `localStorage` initialization. If the `useEffect` is completely removed, unsaved state changes will persist when the modal is closed and reopened.
 **Action:** Always combine lazy state initialization (`useState(() => ...)`) with a conditional `useEffect` (e.g., `if (isOpen) { ... }`) to ensure the state is correctly resynchronized from external storage without causing double-renders on initial mount or closure.
+## 2024-05-18 - Bypassing React for High-Frequency AI Streams
+**Learning:** During AI text generation, passing the accumulated string to a React component and letting it re-render (even a leaf component) results in O(N) string concatenation and frequent VDOM diffing. When chunks come in 50-100 times per second, this can cause UI lag and high CPU usage.
+**Action:** Use a `ref` and `useImperativeHandle` to bypass React's render cycle completely. Mutate the DOM directly using `element.appendChild(document.createTextNode(chunk))` to achieve O(1) appending with zero React overhead during the stream.
