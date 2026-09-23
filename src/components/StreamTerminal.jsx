@@ -1,14 +1,27 @@
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 
 // ⚡ Bolt Optimization: Extracted terminal into a child component and used useImperativeHandle
-// to manage streaming text state. This isolates high-frequency state updates to this leaf node,
-// preventing expensive re-renders of the entire App component tree on every single stream chunk.
+// to manage streaming text state. This isolates high-frequency state updates to this leaf node.
+// ⚡ Bolt Extreme Optimization: Bypassed React rendering entirely for text chunks.
+// Uses direct DOM mutation via refs to avoid UI lag and high CPU usage during AI text streaming.
 const StreamTerminal = forwardRef(({ isLoading }, ref) => {
-  const [streamedText, setStreamedText] = useState("");
+  const textContainerRef = useRef(null);
 
   useImperativeHandle(ref, () => ({
-    updateText: (text) => setStreamedText(text),
-    clearText: () => setStreamedText(""),
+    updateText: (chunk) => {
+      if (textContainerRef.current) {
+        // Remove placeholder if it's the first chunk
+        if (textContainerRef.current.querySelector('span')) {
+           textContainerRef.current.textContent = '';
+        }
+        textContainerRef.current.appendChild(document.createTextNode(chunk));
+      }
+    },
+    clearText: () => {
+      if (textContainerRef.current) {
+        textContainerRef.current.innerHTML = '<span class="text-slate-600">Waiting for generation to start...</span>';
+      }
+    },
   }));
 
   return (
@@ -19,10 +32,11 @@ const StreamTerminal = forwardRef(({ isLoading }, ref) => {
           AI Stream Terminal
         </span>
       </div>
-      <div className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap">
-        {streamedText || (
-          <span className="text-slate-600">Waiting for generation to start...</span>
-        )}
+      <div
+        ref={textContainerRef}
+        className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap"
+      >
+        <span className="text-slate-600">Waiting for generation to start...</span>
       </div>
     </div>
   );
