@@ -52,7 +52,7 @@ export default function App() {
     
     try {
       const cards = await generateDeckStream(settings, params, (full, chunk) => {
-        streamTerminalRef.current?.updateText(full);
+        streamTerminalRef.current?.updateText(full, chunk);
       });
       
       const newHistory = saveDeckToHistory(params.nicheTopic, cards);
