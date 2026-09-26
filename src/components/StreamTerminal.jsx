@@ -1,14 +1,29 @@
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useImperativeHandle, forwardRef, useRef } from 'react';
 
-// ⚡ Bolt Optimization: Extracted terminal into a child component and used useImperativeHandle
-// to manage streaming text state. This isolates high-frequency state updates to this leaf node,
-// preventing expensive re-renders of the entire App component tree on every single stream chunk.
+// ⚡ Bolt Optimization: Replaced useState with direct DOM manipulation via refs.
+// This bypasses React's render cycle for extreme high-frequency text updates
+// (AI streaming), avoiding UI lag and high CPU usage.
 const StreamTerminal = forwardRef(({ isLoading }, ref) => {
-  const [streamedText, setStreamedText] = useState("");
+  const textContainerRef = useRef(null);
+  const placeholderRef = useRef(null);
 
   useImperativeHandle(ref, () => ({
-    updateText: (text) => setStreamedText(text),
-    clearText: () => setStreamedText(""),
+    updateText: (fullText, chunk) => {
+      if (placeholderRef.current && placeholderRef.current.style.display !== 'none') {
+        placeholderRef.current.style.display = 'none';
+      }
+      if (textContainerRef.current && chunk) {
+        textContainerRef.current.appendChild(document.createTextNode(chunk));
+      }
+    },
+    clearText: () => {
+      if (textContainerRef.current) {
+        textContainerRef.current.textContent = '';
+      }
+      if (placeholderRef.current) {
+        placeholderRef.current.style.display = 'block';
+      }
+    },
   }));
 
   return (
@@ -19,10 +34,11 @@ const StreamTerminal = forwardRef(({ isLoading }, ref) => {
           AI Stream Terminal
         </span>
       </div>
-      <div className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap">
-        {streamedText || (
+      <div className="flex-1 overflow-y-auto text-green-400 whitespace-pre-wrap relative">
+        <div ref={placeholderRef} className="absolute inset-0 pointer-events-none">
           <span className="text-slate-600">Waiting for generation to start...</span>
-        )}
+        </div>
+        <div ref={textContainerRef} className="w-full h-full"></div>
       </div>
     </div>
   );
