@@ -13,7 +13,16 @@ const StreamTerminal = forwardRef(({ isLoading }, ref) => {
         placeholderRef.current.style.display = 'none';
       }
       if (textContainerRef.current && chunk) {
-        textContainerRef.current.appendChild(document.createTextNode(chunk));
+        const container = textContainerRef.current;
+        // ⚡ Bolt Optimization: Concatenate text to the existing text node's nodeValue
+        // instead of appending a new document.createTextNode() for every chunk.
+        // Impact: Reduces DOM node count from ~1000+ per stream to exactly 1,
+        // preventing unnecessary memory allocation and DOM size blowup.
+        if (container.lastChild && container.lastChild.nodeType === Node.TEXT_NODE) {
+          container.lastChild.nodeValue += chunk;
+        } else {
+          container.appendChild(document.createTextNode(chunk));
+        }
       }
     },
     clearText: () => {
