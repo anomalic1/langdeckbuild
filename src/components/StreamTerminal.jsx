@@ -13,7 +13,15 @@ const StreamTerminal = forwardRef(({ isLoading }, ref) => {
         placeholderRef.current.style.display = 'none';
       }
       if (textContainerRef.current && chunk) {
-        textContainerRef.current.appendChild(document.createTextNode(chunk));
+        // ⚡ Bolt Optimization: Prevent DOM bloat during high-frequency AI streaming
+        // Instead of appending a new TextNode for every chunk (which can create thousands
+        // of nodes and cause layout thrashing), we append to the existing lastChild's nodeValue.
+        const lastChild = textContainerRef.current.lastChild;
+        if (lastChild && lastChild.nodeType === Node.TEXT_NODE) {
+          lastChild.nodeValue += chunk;
+        } else {
+          textContainerRef.current.appendChild(document.createTextNode(chunk));
+        }
       }
     },
     clearText: () => {
