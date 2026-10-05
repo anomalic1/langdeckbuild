@@ -4,3 +4,7 @@
 ## 2026-09-26 - Extreme High-Frequency Text Updates Pattern
 **Learning:** For extreme high-frequency text updates (like AI text streaming), relying on React's `useState` can cause UI lag and high CPU usage due to the sheer volume of renders.
 **Action:** Bypass React's render cycle by using direct DOM manipulation (e.g., `textContainerRef.current.appendChild(document.createTextNode(chunk))`) via refs. Manually manage visibility of placeholders to prevent regressions.
+
+## 2025-01-20 - DOM Bloat in Streamed Text
+**Learning:** While bypassing React for streaming text is good for performance, blindly using `appendChild(document.createTextNode(chunk))` creates thousands of DOM nodes for a single stream. This leads to massive DOM bloat, high memory usage, and severe layout thrashing.
+**Action:** Always check if the `lastChild` is a TextNode and concatenate the chunk to its `nodeValue` instead of appending a new node every time.
