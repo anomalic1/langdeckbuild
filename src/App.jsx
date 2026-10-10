@@ -28,6 +28,11 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const streamTerminalRef = useRef(null);
+  const currentDeckRef = useRef(currentDeck);
+
+  useEffect(() => {
+    currentDeckRef.current = currentDeck;
+  }, [currentDeck]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -75,12 +80,12 @@ export default function App() {
 
   const handleDeleteDeck = useCallback((id) => {
     setHistory(deleteDeckFromHistory(id));
-    if (currentDeck?.id === id) {
+    if (currentDeckRef.current?.id === id) {
       setCurrentDeck(null);
       setCurrentTopic("");
     }
     toast('Deck deleted.', { icon: '🗑️' });
-  }, [currentDeck]);
+  }, []);
 
   // ⚡ Bolt Optimization: Replaced inline arrow functions in JSX with stable
   // references to maintain React.memo effectiveness on child components.
