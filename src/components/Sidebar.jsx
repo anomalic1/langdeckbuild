@@ -1,6 +1,36 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { BookOpen, Settings, Clock, Trash2, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+const SidebarItem = React.memo(({ deck, currentDeckId, onSelectDeck, onDeleteDeck }) => {
+  const formattedDate = useMemo(() => new Date(deck.date).toLocaleDateString(), [deck.date]);
+
+  const handleSelect = useCallback(() => onSelectDeck(deck), [deck, onSelectDeck]);
+  const handleDelete = useCallback((e) => {
+    e.stopPropagation();
+    onDeleteDeck(deck.id);
+  }, [deck.id, onDeleteDeck]);
+
+  return (
+    <div
+      onClick={handleSelect}
+      className={`group flex justify-between items-center px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
+        currentDeckId === deck.id ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'
+      }`}
+    >
+      <div className="flex flex-col truncate pr-2">
+        <span className="font-medium text-sm truncate">{deck.topic}</span>
+        <span className="text-xs text-slate-500">{deck.cards.length} cards • {formattedDate}</span>
+      </div>
+      <button
+        onClick={handleDelete}
+        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
+});
 
 // ⚡ Bolt Optimization: Memoized to prevent expensive re-renders while AI stream updates App state.
 // Impact: Reduces re-renders significantly during deck generation.
@@ -32,27 +62,13 @@ const Sidebar = React.memo(function Sidebar({ history, onSelectDeck, onDeleteDec
           <p className="text-sm text-slate-600 px-2 italic">No decks generated yet.</p>
         ) : (
           history.map((deck) => (
-            <div 
+            <SidebarItem
               key={deck.id}
-              onClick={() => onSelectDeck(deck)}
-              className={`group flex justify-between items-center px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-                currentDeckId === deck.id ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'
-              }`}
-            >
-              <div className="flex flex-col truncate pr-2">
-                <span className="font-medium text-sm truncate">{deck.topic}</span>
-                <span className="text-xs text-slate-500">{deck.cards.length} cards • {new Date(deck.date).toLocaleDateString()}</span>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteDeck(deck.id);
-                }}
-                className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
+              deck={deck}
+              currentDeckId={currentDeckId}
+              onSelectDeck={onSelectDeck}
+              onDeleteDeck={onDeleteDeck}
+            />
           ))
         )}
       </div>
