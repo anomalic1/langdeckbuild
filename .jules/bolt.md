@@ -10,3 +10,7 @@
 ## 2024-05-18 - Unstable Parent Callbacks and List Thrashing
 **Learning:** In React, passing an unstable callback (one that depends on constantly changing parent state, like `currentDeck`) to a memoized list component (like `Sidebar`) forces the entire list and its parent to re-render, breaking memoization. Furthermore, inline operations like `new Date().toLocaleDateString()` inside an O(N) list mapping compound the performance penalty by recalculating string formats on every re-render.
 **Action:** Use functional state updates or Refs to eliminate state dependencies in parent callbacks, keeping them referentially stable. Extract list items into separate memoized components (`React.memo`) and use `useMemo` for any expensive local computations (like date formatting) to isolate re-renders strictly to modified items.
+
+## 2024-05-18 - [Reduce List Thrashing]
+ **Learning:** [Passing a primitive boolean flag (like \`isCurrent\`) rather than the active item ID to memoized list items prevents O(N) list item re-renders when the selection changes. Only the previously selected and newly selected items re-render.]
+ **Action:** [Always pass a boolean \`isCurrent\` or \`isSelected\` prop to \`React.memo\` list items rather than passing the globally active ID to each item.]

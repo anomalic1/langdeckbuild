@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { BookOpen, Settings, Clock, Trash2, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const SidebarItem = React.memo(({ deck, currentDeckId, onSelectDeck, onDeleteDeck }) => {
+const SidebarItem = React.memo(({ deck, isCurrent, onSelectDeck, onDeleteDeck }) => {
   const formattedDate = useMemo(() => new Date(deck.date).toLocaleDateString(), [deck.date]);
 
   const handleSelect = useCallback(() => onSelectDeck(deck), [deck, onSelectDeck]);
@@ -15,7 +15,7 @@ const SidebarItem = React.memo(({ deck, currentDeckId, onSelectDeck, onDeleteDec
     <div
       onClick={handleSelect}
       className={`group flex justify-between items-center px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-        currentDeckId === deck.id ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'
+        isCurrent ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'
       }`}
     >
       <div className="flex flex-col truncate pr-2">
@@ -65,7 +65,7 @@ const Sidebar = React.memo(function Sidebar({ history, onSelectDeck, onDeleteDec
             <SidebarItem
               key={deck.id}
               deck={deck}
-              currentDeckId={currentDeckId}
+              isCurrent={currentDeckId === deck.id}
               onSelectDeck={onSelectDeck}
               onDeleteDeck={onDeleteDeck}
             />
