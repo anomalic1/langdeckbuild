@@ -10,3 +10,6 @@
 ## 2024-05-18 - Unstable Parent Callbacks and List Thrashing
 **Learning:** In React, passing an unstable callback (one that depends on constantly changing parent state, like `currentDeck`) to a memoized list component (like `Sidebar`) forces the entire list and its parent to re-render, breaking memoization. Furthermore, inline operations like `new Date().toLocaleDateString()` inside an O(N) list mapping compound the performance penalty by recalculating string formats on every re-render.
 **Action:** Use functional state updates or Refs to eliminate state dependencies in parent callbacks, keeping them referentially stable. Extract list items into separate memoized components (`React.memo`) and use `useMemo` for any expensive local computations (like date formatting) to isolate re-renders strictly to modified items.
+## 2023-10-13 - [Prevent O(N) List Re-renders]
+**Learning:** Passing a global ID string (e.g., `currentDeckId`) into memoized child list items causes all items to re-render when the ID changes, breaking the benefits of `React.memo` (O(N) rendering).
+**Action:** Always pass a derived boolean flag (e.g., `isCurrent={currentDeckId === item.id}`) instead. This ensures only the two affected list items (the previously selected and newly selected) re-render, optimizing performance to O(1).
