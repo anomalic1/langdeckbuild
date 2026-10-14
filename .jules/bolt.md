@@ -13,3 +13,6 @@
 ## 2023-10-13 - [Prevent O(N) List Re-renders]
 **Learning:** Passing a global ID string (e.g., `currentDeckId`) into memoized child list items causes all items to re-render when the ID changes, breaking the benefits of `React.memo` (O(N) rendering).
 **Action:** Always pass a derived boolean flag (e.g., `isCurrent={currentDeckId === item.id}`) instead. This ensures only the two affected list items (the previously selected and newly selected) re-render, optimizing performance to O(1).
+## 2024-10-14 - Redundant LocalStorage Parsing Bottleneck
+**Learning:** Performing a synchronous `JSON.parse(localStorage.getItem(...))` directly inside write utility functions (like `saveDeckToHistory`) when the application already maintains an up-to-date in-memory state representation causes significant main thread blocking. As the localStorage string grows, this redundant parsing scales linearly, leading to noticeable UI freezing during save/delete operations, especially right after resource-intensive streaming operations.
+**Action:** When a global state is already maintained in React memory, pass that state down to storage utilities instead of re-reading from disk/localStorage. If using hooks, maintain a stable `useRef` to pass to stable callbacks without breaking memoization.
