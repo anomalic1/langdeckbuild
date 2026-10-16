@@ -96,7 +96,11 @@ export default function FlashcardViewer({ deck, topic, onBack }) {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="absolute inset-0"
           >
-            <Flashcard card={currentDeck[currentIndex]} />
+            {/* ⚡ Bolt Optimization: Added a unique `key` tied to the card's data identity.
+                This leverages React's reconciliation engine to naturally reset the Flashcard's
+                `isFlipped` state when moving to a new card, instead of relying on an expensive
+                `useEffect` sync that causes a double-render. */}
+            <Flashcard key={currentDeck[currentIndex].target_word} card={currentDeck[currentIndex]} />
           </motion.div>
         </AnimatePresence>
       </div>

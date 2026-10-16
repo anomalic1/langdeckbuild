@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function Flashcard({ card }) {
+  // ⚡ Bolt Optimization: Removed anti-pattern useEffect that synced `isFlipped` state
+  // on `card` prop change. This eliminates a forced secondary React render pass.
+  // We now rely on the parent providing a unique `key` to reset component state.
   const [isFlipped, setIsFlipped] = useState(false);
-
-  useEffect(() => {
-    setIsFlipped(false);
-  }, [card]);
 
   return (
     <motion.div 

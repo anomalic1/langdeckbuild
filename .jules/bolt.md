@@ -13,3 +13,9 @@
 ## 2023-10-13 - [Prevent O(N) List Re-renders]
 **Learning:** Passing a global ID string (e.g., `currentDeckId`) into memoized child list items causes all items to re-render when the ID changes, breaking the benefits of `React.memo` (O(N) rendering).
 **Action:** Always pass a derived boolean flag (e.g., `isCurrent={currentDeckId === item.id}`) instead. This ensures only the two affected list items (the previously selected and newly selected) re-render, optimizing performance to O(1).
+## 2024-10-16 - Prevent Redundant Synchronous Disk Reads
+**Learning:** Performing a synchronous `JSON.parse(localStorage.getItem(...))` on the main thread during high-frequency interactions (like creating/deleting decks) causes unnecessary performance overhead, especially when the same state is already maintained in React.
+**Action:** Pass the already-maintained React global state down to storage utilities to compute the next state. Use a stable `useRef` to track state to allow using it inside stable callbacks without breaking memoization.
+## 2024-10-16 - Eliminate useEffect Prop-Sync Double Renders
+**Learning:** Using `useEffect` to manually sync local state (like `isFlipped`) when a prop (like `card`) changes is an anti-pattern that forces a secondary React render pass, degrading performance.
+**Action:** Remove the syncing `useEffect` entirely. Instead, leverage React's reconciliation engine by passing a unique `key` prop tied to the data's identity from the parent (e.g., `<Flashcard key={card.id} card={card} />`). This naturally resets the component state without extra renders.
