@@ -2,8 +2,13 @@ import React, { useMemo, useCallback } from 'react';
 import { BookOpen, Settings, Clock, Trash2, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// ⚡ Bolt Optimization: Shared Intl.DateTimeFormat instance
+// Impact: Prevents expensive re-instantiation of date formatters for every list item,
+// improving performance when rendering long lists of deck history.
+const dateFormatter = new Intl.DateTimeFormat();
+
 const SidebarItem = React.memo(({ deck, isCurrent, onSelectDeck, onDeleteDeck }) => {
-  const formattedDate = useMemo(() => new Date(deck.date).toLocaleDateString(), [deck.date]);
+  const formattedDate = useMemo(() => dateFormatter.format(new Date(deck.date)), [deck.date]);
 
   const handleSelect = useCallback(() => onSelectDeck(deck), [deck, onSelectDeck]);
   const handleDelete = useCallback((e) => {

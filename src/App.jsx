@@ -29,10 +29,15 @@ export default function App() {
 
   const streamTerminalRef = useRef(null);
   const currentDeckRef = useRef(currentDeck);
+  const historyRef = useRef(history);
 
   useEffect(() => {
     currentDeckRef.current = currentDeck;
   }, [currentDeck]);
+
+  useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -60,7 +65,7 @@ export default function App() {
         streamTerminalRef.current?.updateText(full, chunk);
       });
       
-      const newHistory = saveDeckToHistory(params.nicheTopic, cards);
+      const newHistory = saveDeckToHistory(params.nicheTopic, cards, historyRef.current);
       setHistory(newHistory);
       setCurrentDeck({ ...newHistory[0] });
       setCurrentTopic(params.nicheTopic);
@@ -79,7 +84,7 @@ export default function App() {
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
-    setHistory(deleteDeckFromHistory(id));
+    setHistory(deleteDeckFromHistory(id, historyRef.current));
     if (currentDeckRef.current?.id === id) {
       setCurrentDeck(null);
       setCurrentTopic("");
