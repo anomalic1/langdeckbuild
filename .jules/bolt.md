@@ -19,3 +19,6 @@
 ## 2024-10-16 - Eliminate useEffect Prop-Sync Double Renders
 **Learning:** Using `useEffect` to manually sync local state (like `isFlipped`) when a prop (like `card`) changes is an anti-pattern that forces a secondary React render pass, degrading performance.
 **Action:** Remove the syncing `useEffect` entirely. Instead, leverage React's reconciliation engine by passing a unique `key` prop tied to the data's identity from the parent (e.g., `<Flashcard key={card.id} card={card} />`). This naturally resets the component state without extra renders.
+## 2023-10-17 - [Remove state synchronization anti-pattern]
+ **Learning:** Using `useEffect` to constantly sync state variables (`currentDeck` and `history`) to `useRef`s just so they can be accessed inside `useCallback`s is a React anti-pattern that creates subtle race conditions and unnecessary re-renders. Similarly, relying on state syncs rather than `localStorage` directly in storage util files can lead to out-of-sync memory states that overwrite valid data (especially with multiple tabs).
+ **Action:** Instead of sinking state to `useRef` using `useEffect`, use proper functional state updates (e.g., `setCurrentDeck(prev => ...)`), remove derived states entirely (like `currentTopic`), and modify external utility files to read directly from `localStorage` ensuring an accurate source of truth for "cold paths".

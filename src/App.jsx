@@ -23,21 +23,10 @@ export default function App() {
   
   const [history, setHistory] = useState(() => getDeckHistory());
   const [currentDeck, setCurrentDeck] = useState(null);
-  const [currentTopic, setCurrentTopic] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
 
   const streamTerminalRef = useRef(null);
-  const currentDeckRef = useRef(currentDeck);
-  const historyRef = useRef(history);
-
-  useEffect(() => {
-    currentDeckRef.current = currentDeck;
-  }, [currentDeck]);
-
-  useEffect(() => {
-    historyRef.current = history;
-  }, [history]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -65,10 +54,9 @@ export default function App() {
         streamTerminalRef.current?.updateText(full, chunk);
       });
       
-      const newHistory = saveDeckToHistory(params.nicheTopic, cards, historyRef.current);
+      const newHistory = saveDeckToHistory(params.nicheTopic, cards);
       setHistory(newHistory);
       setCurrentDeck({ ...newHistory[0] });
-      setCurrentTopic(params.nicheTopic);
       
       toast.success('Deck generated successfully!', { id: loadingToast });
     } catch (err) {
@@ -80,15 +68,11 @@ export default function App() {
 
   const handleSelectDeck = useCallback((deck) => {
     setCurrentDeck(deck);
-    setCurrentTopic(deck.topic);
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
-    setHistory(deleteDeckFromHistory(id, historyRef.current));
-    if (currentDeckRef.current?.id === id) {
-      setCurrentDeck(null);
-      setCurrentTopic("");
-    }
+    setHistory(deleteDeckFromHistory(id));
+    setCurrentDeck(prev => prev?.id === id ? null : prev);
     toast('Deck deleted.', { icon: '🗑️' });
   }, []);
 
@@ -144,7 +128,7 @@ export default function App() {
             >
               <FlashcardViewer 
                 deck={currentDeck.cards} 
-                topic={currentTopic}
+                topic={currentDeck.topic}
                 onBack={() => setCurrentDeck(null)}
               />
             </motion.div>
