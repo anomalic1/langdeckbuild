@@ -19,3 +19,6 @@
 ## 2024-10-16 - Eliminate useEffect Prop-Sync Double Renders
 **Learning:** Using `useEffect` to manually sync local state (like `isFlipped`) when a prop (like `card`) changes is an anti-pattern that forces a secondary React render pass, degrading performance.
 **Action:** Remove the syncing `useEffect` entirely. Instead, leverage React's reconciliation engine by passing a unique `key` prop tied to the data's identity from the parent (e.g., `<Flashcard key={card.id} card={card} />`). This naturally resets the component state without extra renders.
+## 2026-10-18 - Avoid Redundant Derived State
+**Learning:** Storing derived data (like `currentTopic` derived from `currentDeck.topic`) in its own state variable is an anti-pattern. It requires manually keeping the states in sync, increasing React batching overhead and the risk of de-synchronization bugs.
+**Action:** Remove redundant state variables and derive the needed value dynamically during render (e.g., `currentDeck.topic`).

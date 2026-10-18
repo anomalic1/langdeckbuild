@@ -23,7 +23,9 @@ export default function App() {
   
   const [history, setHistory] = useState(() => getDeckHistory());
   const [currentDeck, setCurrentDeck] = useState(null);
-  const [currentTopic, setCurrentTopic] = useState('');
+  // ⚡ Bolt Optimization: Removed redundant `currentTopic` state.
+  // Impact: Deriving `topic` directly from `currentDeck.topic` avoids synchronizing multiple
+  // state variables, reducing React batching overhead and eliminating potential desync bugs.
   
   const [isLoading, setIsLoading] = useState(false);
 
@@ -68,7 +70,6 @@ export default function App() {
       const newHistory = saveDeckToHistory(params.nicheTopic, cards, historyRef.current);
       setHistory(newHistory);
       setCurrentDeck({ ...newHistory[0] });
-      setCurrentTopic(params.nicheTopic);
       
       toast.success('Deck generated successfully!', { id: loadingToast });
     } catch (err) {
@@ -80,14 +81,12 @@ export default function App() {
 
   const handleSelectDeck = useCallback((deck) => {
     setCurrentDeck(deck);
-    setCurrentTopic(deck.topic);
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
     setHistory(deleteDeckFromHistory(id, historyRef.current));
     if (currentDeckRef.current?.id === id) {
       setCurrentDeck(null);
-      setCurrentTopic("");
     }
     toast('Deck deleted.', { icon: '🗑️' });
   }, []);
@@ -144,7 +143,7 @@ export default function App() {
             >
               <FlashcardViewer 
                 deck={currentDeck.cards} 
-                topic={currentTopic}
+                topic={currentDeck.topic}
                 onBack={() => setCurrentDeck(null)}
               />
             </motion.div>
