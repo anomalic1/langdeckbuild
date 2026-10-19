@@ -22,3 +22,6 @@
 ## 2026-10-18 - Avoid Redundant Derived State
 **Learning:** Storing derived data (like `currentTopic` derived from `currentDeck.topic`) in its own state variable is an anti-pattern. It requires manually keeping the states in sync, increasing React batching overhead and the risk of de-synchronization bugs.
 **Action:** Remove redundant state variables and derive the needed value dynamically during render (e.g., `currentDeck.topic`).
+## 2024-10-21 - Code Splitting Conditionally Rendered Heavy Components
+**Learning:** Conditionally rendered components that import heavy external dependencies (like `react-swipeable` or animation libraries) unnecessarily bloat the initial JS bundle size when statically imported, hurting Time to Interactive (TTI).
+**Action:** Use `React.lazy()` and `<Suspense>` to code-split these heavy components if they are not required on the initial screen load, ensuring they are only fetched when the user triggers the condition to render them.
