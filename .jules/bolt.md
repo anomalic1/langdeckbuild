@@ -22,3 +22,6 @@
 ## 2026-10-18 - Avoid Redundant Derived State
 **Learning:** Storing derived data (like `currentTopic` derived from `currentDeck.topic`) in its own state variable is an anti-pattern. It requires manually keeping the states in sync, increasing React batching overhead and the risk of de-synchronization bugs.
 **Action:** Remove redundant state variables and derive the needed value dynamically during render (e.g., `currentDeck.topic`).
+## 2026-10-20 - Code-splitting Heavy Components
+**Learning:** `FlashcardViewer` is a heavy component that imports external dependencies (like `react-swipeable` and dynamically imports `canvas-confetti`). Because it is only needed when a deck is generated or selected, including it in the main bundle unnecessarily increases the initial JavaScript payload.
+**Action:** Use `React.lazy()` to dynamically import components that are not immediately required for the first paint or Time to Interactive (TTI), wrapping them in `<Suspense>`.
