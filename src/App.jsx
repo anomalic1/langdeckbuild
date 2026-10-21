@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SettingsModal from './components/SettingsModal';
 import DeckGeneratorForm from './components/DeckGeneratorForm';
-import FlashcardViewer from './components/FlashcardViewer';
 import Sidebar from './components/Sidebar';
 import StreamTerminal from './components/StreamTerminal';
 import { generateDeckStream } from './utils/api';
 import { saveDeckToHistory, getDeckHistory, deleteDeckFromHistory } from './utils/storage';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// ⚡ Bolt Optimization: Lazily load FlashcardViewer to reduce initial bundle size.
+// Impact: Improves Time to Interactive (TTI) by code-splitting the viewer and its dependencies (e.g., react-swipeable).
+const FlashcardViewer = React.lazy(() => import('./components/FlashcardViewer'));
 
 export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
@@ -141,11 +144,13 @@ export default function App() {
               transition={{ duration: 0.3 }}
               className="h-full flex items-center justify-center"
             >
-              <FlashcardViewer 
-                deck={currentDeck.cards} 
-                topic={currentDeck.topic}
-                onBack={() => setCurrentDeck(null)}
-              />
+              <React.Suspense fallback={<div className="animate-pulse flex flex-col items-center justify-center text-slate-500"><div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>Loading...</div>}>
+                <FlashcardViewer
+                  deck={currentDeck.cards}
+                  topic={currentDeck.topic}
+                  onBack={() => setCurrentDeck(null)}
+                />
+              </React.Suspense>
             </motion.div>
           )}
         </AnimatePresence>
