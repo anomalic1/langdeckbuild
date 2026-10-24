@@ -33,16 +33,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const streamTerminalRef = useRef(null);
-  const currentDeckRef = useRef(currentDeck);
-  const historyRef = useRef(history);
-
-  useEffect(() => {
-    currentDeckRef.current = currentDeck;
-  }, [currentDeck]);
-
-  useEffect(() => {
-    historyRef.current = history;
-  }, [history]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -70,7 +60,7 @@ export default function App() {
         streamTerminalRef.current?.updateText(full, chunk);
       });
       
-      const newHistory = saveDeckToHistory(params.nicheTopic, cards, historyRef.current);
+      const newHistory = saveDeckToHistory(params.nicheTopic, cards);
       setHistory(newHistory);
       setCurrentDeck({ ...newHistory[0] });
       
@@ -87,10 +77,8 @@ export default function App() {
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
-    setHistory(deleteDeckFromHistory(id, historyRef.current));
-    if (currentDeckRef.current?.id === id) {
-      setCurrentDeck(null);
-    }
+    setHistory(deleteDeckFromHistory(id));
+    setCurrentDeck(prev => prev?.id === id ? null : prev);
     toast('Deck deleted.', { icon: '🗑️' });
   }, []);
 
@@ -146,9 +134,10 @@ export default function App() {
             >
               <React.Suspense fallback={<div className="animate-pulse flex flex-col items-center justify-center text-slate-500"><div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>Loading...</div>}>
                 <FlashcardViewer
+                  key={currentDeck.id}
                   deck={currentDeck.cards}
                   topic={currentDeck.topic}
-                  onBack={() => setCurrentDeck(null)}
+                  onBack={handleNewDeck}
                 />
               </React.Suspense>
             </motion.div>
