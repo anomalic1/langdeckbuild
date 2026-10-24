@@ -25,3 +25,7 @@
 ## 2025-10-21 - Code Splitting Conditionally Rendered Heavy Components
 **Learning:** Initial bundle sizes can be bloated by components that aren't immediately visible, like a viewer that only appears after an action is taken.
 **Action:** Use `React.lazy()` and `<Suspense>` to code-split conditionally rendered heavy components (like those with large dependencies) to reduce the initial JS bundle size and improve Time to Interactive (TTI).
+
+## 2024-11-20 - Avoid React useRef State Syncing Anti-Pattern for Cold Paths
+**Learning:** Passing React state to storage utilities via a `useRef` updated in a `useEffect` is an anti-pattern that introduces critical race conditions, causing rapid sequential actions to use stale state. Furthermore, attempting to optimize infrequent operations (cold paths) like synchronous `localStorage` reads during deck creation using this anti-pattern is premature optimization and leads to these bugs.
+**Action:** Do not use `useRef` state syncing to try and optimize cold paths. Let storage utilities read directly from `localStorage` instead. Let React update its state separately (using functional updates `setHistory(prev => ...)`) or by returning the newly read history from the updated storage utility to `setHistory`.
