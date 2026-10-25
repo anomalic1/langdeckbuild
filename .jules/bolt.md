@@ -25,3 +25,6 @@
 ## 2025-10-21 - Code Splitting Conditionally Rendered Heavy Components
 **Learning:** Initial bundle sizes can be bloated by components that aren't immediately visible, like a viewer that only appears after an action is taken.
 **Action:** Use `React.lazy()` and `<Suspense>` to code-split conditionally rendered heavy components (like those with large dependencies) to reduce the initial JS bundle size and improve Time to Interactive (TTI).
+## 2026-10-25 - Redundant Synchronous Disk Reads on Mount
+**Learning:** Performing multiple `localStorage.getItem` reads inside child component state initializations (like `SettingsModal`) that run synchronously on mount can cause unnecessary main-thread blocking, especially if the parent component is already reading the same data.
+**Action:** Lift the storage reads to the parent, initialize the state there, and pass the required configuration values down to child components as props to eliminate duplicate disk access.

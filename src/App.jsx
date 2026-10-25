@@ -13,15 +13,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 const FlashcardViewer = React.lazy(() => import('./components/FlashcardViewer'));
 
 export default function App() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
-    return !localStorage.getItem('langdeck_api_key');
-  });
   const [settings, setSettings] = useState(() => {
     return {
       apiKey: localStorage.getItem('langdeck_api_key') || '',
       baseUrl: localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions',
       modelName: localStorage.getItem('langdeck_model') || 'gpt-4o-mini'
     };
+  });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
+    return !settings.apiKey;
   });
   
   const [history, setHistory] = useState(() => getDeckHistory());
@@ -160,6 +160,7 @@ export default function App() {
         isOpen={isSettingsOpen} 
         onClose={handleCloseSettings}
         onSave={handleSaveSettings}
+        settings={settings}
       />
     </div>
   );
