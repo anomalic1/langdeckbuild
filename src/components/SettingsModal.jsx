@@ -6,21 +6,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Impact: Reduces re-renders significantly during deck generation.
 // ⚡ Bolt Optimization: Lazy state initialization for localStorage reads
 // Impact: Prevents Flash of Empty State (FOES) and avoids unnecessary secondary render on mount
-const SettingsModal = React.memo(function SettingsModal({ isOpen, onClose, onSave }) {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('langdeck_api_key') || '');
-  const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions');
-  const [modelName, setModelName] = useState(() => localStorage.getItem('langdeck_model') || 'gpt-4o-mini');
+// ⚡ Bolt Optimization: Eliminate redundant synchronous localStorage reads
+// Impact: Re-uses the existing App `settings` prop for initialization and sync, avoiding expensive disk reads during render and mount.
+const SettingsModal = React.memo(function SettingsModal({ isOpen, onClose, onSave, settings }) {
+  const [apiKey, setApiKey] = useState(() => settings?.apiKey || '');
+  const [baseUrl, setBaseUrl] = useState(() => settings?.baseUrl || 'https://api.openai.com/v1/chat/completions');
+  const [modelName, setModelName] = useState(() => settings?.modelName || 'gpt-4o-mini');
 
   useEffect(() => {
     if (isOpen) {
-      const savedKey = localStorage.getItem('langdeck_api_key') || '';
-      const savedUrl = localStorage.getItem('langdeck_base_url') || 'https://api.openai.com/v1/chat/completions';
-      const savedModel = localStorage.getItem('langdeck_model') || 'gpt-4o-mini';
-      setApiKey(savedKey);
-      setBaseUrl(savedUrl);
-      setModelName(savedModel);
+      setApiKey(settings?.apiKey || '');
+      setBaseUrl(settings?.baseUrl || 'https://api.openai.com/v1/chat/completions');
+      setModelName(settings?.modelName || 'gpt-4o-mini');
     }
-  }, [isOpen]);
+  }, [isOpen, settings]);
 
   const handleSave = () => {
     localStorage.setItem('langdeck_api_key', apiKey);
