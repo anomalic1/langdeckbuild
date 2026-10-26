@@ -28,3 +28,7 @@
 ## 2026-10-25 - Redundant Synchronous Disk Reads on Mount
 **Learning:** Performing multiple `localStorage.getItem` reads inside child component state initializations (like `SettingsModal`) that run synchronously on mount can cause unnecessary main-thread blocking, especially if the parent component is already reading the same data.
 **Action:** Lift the storage reads to the parent, initialize the state there, and pass the required configuration values down to child components as props to eliminate duplicate disk access.
+
+## 2026-10-26 - Remove State Syncing Anti-Pattern for Cold Paths
+**Learning:** Passing React state to storage utilities via a `useRef` updated in a `useEffect` to avoid `localStorage` reads is an anti-pattern. It introduces race conditions because the ref sync happens after the render, causing rapid actions to use stale state.
+**Action:** Do not prematurely optimize infrequent operations (cold paths) like synchronous `localStorage` reads during deck creation. Let utilities read from disk directly on these cold paths, and use functional state updates when dependent on previous state.
