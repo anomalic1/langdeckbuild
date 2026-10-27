@@ -28,3 +28,7 @@
 ## 2026-10-25 - Redundant Synchronous Disk Reads on Mount
 **Learning:** Performing multiple `localStorage.getItem` reads inside child component state initializations (like `SettingsModal`) that run synchronously on mount can cause unnecessary main-thread blocking, especially if the parent component is already reading the same data.
 **Action:** Lift the storage reads to the parent, initialize the state there, and pass the required configuration values down to child components as props to eliminate duplicate disk access.
+
+## 2024-05-24 - [Avoid React State to Storage Utilities Anti-Pattern]
+**Learning:** Passing React state to storage utilities via a `useRef` updated in a `useEffect` is an anti-pattern that introduces critical race conditions, causing rapid sequential actions (like rapid deletes) to use stale state.
+**Action:** Always read from the source of truth (e.g., `localStorage`) directly within storage utility functions instead of relying on manually synced React refs, and rely on pure functional state updates (`setX(prev => ...)`) rather than direct dependency on ref.current.
