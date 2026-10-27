@@ -33,16 +33,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const streamTerminalRef = useRef(null);
-  const currentDeckRef = useRef(currentDeck);
-  const historyRef = useRef(history);
-
-  useEffect(() => {
-    currentDeckRef.current = currentDeck;
-  }, [currentDeck]);
-
-  useEffect(() => {
-    historyRef.current = history;
-  }, [history]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -70,7 +60,10 @@ export default function App() {
         streamTerminalRef.current?.updateText(full, chunk);
       });
       
-      const newHistory = saveDeckToHistory(params.nicheTopic, cards, historyRef.current);
+      // ⚡ Bolt Optimization: Removed anti-pattern of passing React state to storage utilities
+      // via a useRef updated in a useEffect. This prevents critical race conditions causing rapid
+      // sequential actions to use stale state. Storage utilities now read from disk directly.
+      const newHistory = saveDeckToHistory(params.nicheTopic, cards);
       setHistory(newHistory);
       setCurrentDeck({ ...newHistory[0] });
       
@@ -87,10 +80,8 @@ export default function App() {
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
-    setHistory(deleteDeckFromHistory(id, historyRef.current));
-    if (currentDeckRef.current?.id === id) {
-      setCurrentDeck(null);
-    }
+    setHistory(deleteDeckFromHistory(id));
+    setCurrentDeck((prev) => prev?.id === id ? null : prev);
     toast('Deck deleted.', { icon: '🗑️' });
   }, []);
 
