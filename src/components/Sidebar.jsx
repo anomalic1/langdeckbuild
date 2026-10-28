@@ -35,6 +35,19 @@ const SidebarItem = React.memo(({ deck, isCurrent, onSelectDeck, onDeleteDeck })
       </button>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // ⚡ Bolt Optimization: Custom comparison function to prevent O(N) re-renders
+  // when `JSON.parse` creates new object references for all decks.
+  // We check specific primitives and stable references to safely bypass re-renders.
+  return (
+    prevProps.deck.id === nextProps.deck.id &&
+    prevProps.isCurrent === nextProps.isCurrent &&
+    prevProps.onSelectDeck === nextProps.onSelectDeck &&
+    prevProps.onDeleteDeck === nextProps.onDeleteDeck &&
+    prevProps.deck.topic === nextProps.deck.topic &&
+    prevProps.deck.date === nextProps.deck.date &&
+    prevProps.deck.cards.length === nextProps.deck.cards.length
+  );
 });
 
 // ⚡ Bolt Optimization: Memoized to prevent expensive re-renders while AI stream updates App state.
