@@ -79,10 +79,13 @@ Each object must follow this exact schema:
   // Try to parse the complete text
   let jsonString = fullText.trim();
   
-  // Attempt to extract JSON if LLM added markdown formatting
-  const match = jsonString.match(/\[[\s\S]*\]/);
-  if (match) {
-    jsonString = match[0];
+  // ⚡ Bolt Optimization: Replaced greedy RegExp with built-in string index searches.
+  // Impact: Improves performance by avoiding regex engine overhead and blocking the UI thread
+  // when extracting large JSON payloads from LLM responses.
+  const startIndex = jsonString.indexOf('[');
+  const endIndex = jsonString.lastIndexOf(']');
+  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+    jsonString = jsonString.substring(startIndex, endIndex + 1);
   }
 
   try {
