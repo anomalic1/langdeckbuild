@@ -80,9 +80,10 @@ Each object must follow this exact schema:
   let jsonString = fullText.trim();
   
   // Attempt to extract JSON if LLM added markdown formatting
-  const match = jsonString.match(/\[[\s\S]*\]/);
-  if (match) {
-    jsonString = match[0];
+  const startIdx = jsonString.indexOf("[");
+  const endIdx = jsonString.lastIndexOf("]");
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    jsonString = jsonString.substring(startIdx, endIdx + 1);
   }
 
   try {
