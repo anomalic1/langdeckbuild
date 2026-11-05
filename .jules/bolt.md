@@ -40,3 +40,7 @@
 ## 2024-11-20 - Remove Regex Overhead for Large Payloads
 **Learning:** Using greedy regular expressions like `/\[[\s\S]*\]/` to extract blocks (e.g., JSON arrays) from large payloads can introduce significant RegExp engine overhead when dealing with large strings or long LLM streams.
 **Action:** Replace the expensive greedy regex match with optimized string searches using `indexOf` and `lastIndexOf`. This reduces a slower O(N) operation to a much faster O(N) operation, preventing UI thread blocking when parsing large API responses.
+
+## 2024-11-20 - Eliminate O(N) Synchronous Disk Reads with Async Sync
+**Learning:** Utilities that manage local storage often contain synchronous disk reads (e.g., `JSON.parse(localStorage.getItem(...))`) inside functions that mutate data (like adding or deleting an item). If these are called from the main UI thread during interactions, it creates a blocking O(N) operation that stutters the UI.
+**Action:** Lift the mutation logic to pure functional React state updates (e.g., `setX(prev => prev.filter(...))`) which are O(1) and non-blocking. Use a `useEffect` on the modified state (bypassing the initial mount with a `useRef`) to automatically write the new state array directly to disk off the critical interaction path.
