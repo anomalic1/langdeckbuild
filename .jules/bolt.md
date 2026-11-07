@@ -40,3 +40,7 @@
 ## 2024-11-20 - Remove Regex Overhead for Large Payloads
 **Learning:** Using greedy regular expressions like `/\[[\s\S]*\]/` to extract blocks (e.g., JSON arrays) from large payloads can introduce significant RegExp engine overhead when dealing with large strings or long LLM streams.
 **Action:** Replace the expensive greedy regex match with optimized string searches using `indexOf` and `lastIndexOf`. This reduces a slower O(N) operation to a much faster O(N) operation, preventing UI thread blocking when parsing large API responses.
+
+## 2026-11-06 - Prevent blocking O(N) synchronous disk reads
+**Learning:** During user interactions like creating or deleting a deck, running `JSON.parse(localStorage.getItem(...))` synchronously blocks the main thread, acting as an O(N) operation proportional to the history size, causing UI jank.
+**Action:** Lift the `localStorage` mutation to a pure functional React state update (e.g., `setHistory(prev => ...)`). Sync the state to disk asynchronously using a `useEffect` dependent on the state variable, bypassing the initial mount with a `useRef` flag. Do not pass React state to storage utilities via a `useRef` to avoid race conditions.
