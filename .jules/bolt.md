@@ -40,3 +40,7 @@
 ## 2024-11-20 - Remove Regex Overhead for Large Payloads
 **Learning:** Using greedy regular expressions like `/\[[\s\S]*\]/` to extract blocks (e.g., JSON arrays) from large payloads can introduce significant RegExp engine overhead when dealing with large strings or long LLM streams.
 **Action:** Replace the expensive greedy regex match with optimized string searches using `indexOf` and `lastIndexOf`. This reduces a slower O(N) operation to a much faster O(N) operation, preventing UI thread blocking when parsing large API responses.
+
+## 2024-11-20 - Eliminate O(N) Synchronous Disk Writes for State Mutations
+**Learning:** Calling functions that synchronously write to disk (e.g., `localStorage.setItem('history', JSON.stringify(largeArray))`) on the main thread during high-frequency user interactions (like creating/deleting items) causes the UI to freeze due to O(N) serialization costs.
+**Action:** Eliminate blocking disk writes by replacing them with pure functional React state updates (e.g., `setHistory(prev => ...)`). Defer disk synchronization to a `useEffect` dependent on the state variable, and use `setTimeout(..., 0)` to push the serialization to the end of the event loop. Always bypass the initial mount when syncing from state to disk.
