@@ -4,7 +4,7 @@ import DeckGeneratorForm from './components/DeckGeneratorForm';
 import Sidebar from './components/Sidebar';
 import StreamTerminal from './components/StreamTerminal';
 import { generateDeckStream } from './utils/api';
-import { saveDeckToHistory, getDeckHistory, deleteDeckFromHistory } from './utils/storage';
+import { getDeckHistory } from './utils/storage';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,6 +33,19 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const streamTerminalRef = useRef(null);
+  const isMounted = useRef(false);
+
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    // ⚡ Bolt Optimization: Push disk sync to the end of the event loop.
+    // Impact: Prevents O(N) main-thread blocking when serializing a large history array.
+    setTimeout(() => {
+      localStorage.setItem('langdeck_history', JSON.stringify(history));
+    }, 0);
+  }, [history]);
 
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
@@ -63,9 +76,14 @@ export default function App() {
       // ⚡ Bolt Optimization: Removed anti-pattern of passing React state to storage utilities
       // via a useRef updated in a useEffect. This prevents critical race conditions causing rapid
       // sequential actions to use stale state. Storage utilities now read from disk directly.
-      const newHistory = saveDeckToHistory(params.nicheTopic, cards);
-      setHistory(newHistory);
-      setCurrentDeck({ ...newHistory[0] });
+      const newDeck = {
+        id: Date.now().toString(),
+        topic: params.nicheTopic,
+        cards,
+        date: new Date().toISOString()
+      };
+      setHistory(prev => [newDeck, ...prev]);
+      setCurrentDeck(newDeck);
       
       toast.success('Deck generated successfully!', { id: loadingToast });
     } catch (err) {
@@ -80,7 +98,7 @@ export default function App() {
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
-    setHistory(deleteDeckFromHistory(id));
+    setHistory((prev) => prev.filter(deck => deck.id !== id));
     setCurrentDeck((prev) => prev?.id === id ? null : prev);
     toast('Deck deleted.', { icon: '🗑️' });
   }, []);
