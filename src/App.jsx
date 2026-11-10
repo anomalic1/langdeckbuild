@@ -4,7 +4,7 @@ import DeckGeneratorForm from './components/DeckGeneratorForm';
 import Sidebar from './components/Sidebar';
 import StreamTerminal from './components/StreamTerminal';
 import { generateDeckStream } from './utils/api';
-import { saveDeckToHistory, getDeckHistory, deleteDeckFromHistory } from './utils/storage';
+import { getDeckHistory } from './utils/storage';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -34,6 +34,20 @@ export default function App() {
 
   const streamTerminalRef = useRef(null);
 
+  // ⚡ Bolt Optimization: Eliminate O(N) blocking synchronous disk operations.
+  // Impact: Asynchronously serialize and save history to localStorage.
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem('langdeck_history', JSON.stringify(history));
+    }, 0);
+    return () => clearTimeout(timeoutId);
+  }, [history]);
+
   // ⚡ Bolt Optimization: Stabilized callbacks to prevent unnecessary re-renders
   // of memoized child components (Sidebar, DeckGeneratorForm) during high-frequency
   // state updates from the AI stream reader.
@@ -60,12 +74,16 @@ export default function App() {
         streamTerminalRef.current?.updateText(full, chunk);
       });
       
-      // ⚡ Bolt Optimization: Removed anti-pattern of passing React state to storage utilities
-      // via a useRef updated in a useEffect. This prevents critical race conditions causing rapid
-      // sequential actions to use stale state. Storage utilities now read from disk directly.
-      const newHistory = saveDeckToHistory(params.nicheTopic, cards);
-      setHistory(newHistory);
-      setCurrentDeck({ ...newHistory[0] });
+      // ⚡ Bolt Optimization: Shifted to async React state-driven storage.
+      // Impact: Use pure functional state updates instead of blocking O(N) writes via synchronous storage utilities.
+      const newDeck = {
+        id: Date.now().toString(),
+        topic: params.nicheTopic,
+        cards,
+        date: new Date().toISOString()
+      };
+      setHistory(prev => [newDeck, ...prev]);
+      setCurrentDeck(newDeck);
       
       toast.success('Deck generated successfully!', { id: loadingToast });
     } catch (err) {
@@ -80,7 +98,7 @@ export default function App() {
   }, []);
 
   const handleDeleteDeck = useCallback((id) => {
-    setHistory(deleteDeckFromHistory(id));
+    setHistory(prev => prev.filter(deck => deck.id !== id));
     setCurrentDeck((prev) => prev?.id === id ? null : prev);
     toast('Deck deleted.', { icon: '🗑️' });
   }, []);
