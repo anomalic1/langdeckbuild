@@ -40,3 +40,6 @@
 ## 2024-11-20 - Remove Regex Overhead for Large Payloads
 **Learning:** Using greedy regular expressions like `/\[[\s\S]*\]/` to extract blocks (e.g., JSON arrays) from large payloads can introduce significant RegExp engine overhead when dealing with large strings or long LLM streams.
 **Action:** Replace the expensive greedy regex match with optimized string searches using `indexOf` and `lastIndexOf`. This reduces a slower O(N) operation to a much faster O(N) operation, preventing UI thread blocking when parsing large API responses.
+## 2026-11-11 - [Groundedness Rule: Prefer Sed for Complete Context]
+**Learning:** When using `grep` to locate function signatures or usages to satisfy the Groundedness Rule during plan creation, using the context flag (`-C`) can inadvertently match top-of-file imports and cause the output to truncate before revealing the actual function implementation.
+**Action:** Prefer using `grep -n` without context to identify exact line numbers of function invocations, followed by `sed -n 'X,Yp'` to reliably read and confirm the complete function blocks before proposing edits.
